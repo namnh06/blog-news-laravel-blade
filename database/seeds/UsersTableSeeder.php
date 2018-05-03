@@ -16,7 +16,7 @@ class UsersTableSeeder extends Seeder
     {
         $faker = Faker::create();
         foreach (range(1, 5) as $index) {
-            User::insert([
+            User::create([
                 'name' => $faker->name,
                 'email' => $faker->email,
                 'password' => Hash::make('123456'),
