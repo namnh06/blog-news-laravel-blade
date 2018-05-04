@@ -19,4 +19,9 @@ class User extends Model
     ];
     public $timestamps = true;
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+
+    public function roles()
+    {
+        return $this->belongsToMany('App\Models\Role')->as('role_user')->withTimestamps();
+    }
 }

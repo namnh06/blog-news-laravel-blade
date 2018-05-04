@@ -18,4 +18,9 @@ class Role extends Model
         '',
     ];
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
+
+    public function users()
+    {
+        return $this->belongsToMany('App\Models\User')->as('role_user')->withTimestamps()->withPivot('deleted_at');
+    }
 }

@@ -19,6 +19,7 @@ class CreateRoleUserTable extends Migration
             $table->integer('role_id')->unsigned()->references('id')->on('roles');
             $table->timestamps();
             $table->softDeletes();
+            $table->unique(['user_id', 'role_id']);
         });
     }
 

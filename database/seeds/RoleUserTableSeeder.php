@@ -14,13 +14,13 @@ class RoleUserTableSeeder extends Seeder
      */
     public function run()
     {
-        $listUserId = User::all()->pluck(['id']);
-        $listRoleId = Role::all()->pluck(['id']);
+        $listUserId = User::all()->pluck(['id'])->toArray();
+        $listRoleId = Role::all()->pluck(['id'])->toArray();
 
-        foreach (range(1, 6) as $index) {
-            //TODO TOMORROW, need to config RoleUser Model
+        foreach (range(1, 10) as $index) {
             RoleUser::create([
-
+                'user_id' => $listUserId[array_rand($listUserId)],
+                'role_id' => $listRoleId[array_rand($listRoleId)],
             ]);
         }
     }

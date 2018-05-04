@@ -12,7 +12,6 @@ class RolesTableSeeder extends Seeder
      */
     public function run()
     {
-
         foreach (range(0, count(ARRAY_ROLES) - 1) as $index) {
             Role::create([
                 'name' => ARRAY_ROLES[$index],
