@@ -12,10 +12,10 @@ class User extends Model
     protected $table = 'users';
     protected $primaryKey = 'id';
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'dob', 'phone', 'address',
     ];
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token', 'state',
     ];
     public $timestamps = true;
     protected $dates = ['created_at', 'updated_at', 'deleted_at'];
