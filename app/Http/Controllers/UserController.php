@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
+
+
     /**
      * Display a listing of the resource.
      *
@@ -15,26 +19,10 @@ class UserController extends Controller
      */
     public function index()
     {
-        //
-        $users = User::all();
-        return view('admin.home', ['users' => $users]);
-    }
-
-    public function trashed()
-    {
-        $users = User::onlyTrashed()->get();
-        return view('admin.trashed', ['users' => $users]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-        return view('admin.create');
+        $users = User::excludeMe()->with('roles')->get();
+        return response_success([
+            'users' => $users
+        ]);
     }
 
     /**
@@ -45,85 +33,98 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'dob' => $request->dob,
-            'phone' => $request->phone,
-            'address' => $request->address,
+        $userInfo = $request->only(['name', 'email', 'password']);
+        $validator = Validator::make($userInfo, [
+            'name' => 'required|min:3',
+            'email' => 'required|unique:users|email',
+            'password' => 'required|min:5'
         ]);
 
-        return redirect('user');
+        if ($validator->fails()) {
+            return response_error(['errors' => $validator->errors()]);
+        };
+
+
+        $newUser = User::create(['name' => $userInfo['name'], 'email' => $userInfo['email'], 'password' => bcrypt($userInfo['password'])]);
+
+        return response_success(['user' => $newUser]);
+
+
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\User  $user
+     * @param  \App\Users  $users
      * @return \Illuminate\Http\Response
      */
-    public function show(User $user)
+    public function show(Users $users)
     {
         //
-        return view('admin.detail', ['user' => $user]);
-    }
-
-    public function showTrashed($id)
-    {
-        $user = User::withTrashed()->findOrFail($id);
-        return view('admin.detail', ['user' => $user]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(User $user)
-    {
-        //
-        return view('admin.create', ['user' => $user]);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\User  $user
+     * @param  \App\Users  $users
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, User $user)
     {
-        //
-        $user->update($request->all());
-        $user->save();
-        return redirect('user');
+
+        $userInfo = $request->only(['name', 'password']);
+        $validator = Validator::make($userInfo, [
+            'name' => 'required|min:3',
+            'password' => 'min:5'
+        ]);
+
+        if ($validator->fails()) {
+            return response_error(['errors' => $validator->errors()]);
+        };
+
+
+        $user->update(['name' => $userInfo['name'], 'password' => bcrypt($userInfo['password'])]);
+
+        return response_success(['user' => $user]);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\User  $user
+     * @param  \App\Users  $users
      * @return \Illuminate\Http\Response
      */
     public function destroy(User $user)
     {
-        User::destroy($user->id);
-        return redirect('user');
+        return $user->delete()
+            ? response_success(['user' => $user], 'deleted user id ' . $user->id)
+            : response_error([], 'can not find user id ' . $user->id, 401);
     }
 
-    public function restore($id)
+
+    /*
+     *  SOFT DELETE
+     */
+
+    public function indexDeleted()
     {
-        User::onlyTrashed()->where('id', $id)->restore();
-        return redirect('user/trashed');
+        $users = User::onlyTrashed()->get();
+        return response_success(['users' => $users]);
     }
 
-    public function deleteTrashed($id)
+    public function destroyDeleted($id)
     {
-        User::onlyTrashed()->where('id', $id)->forceDelete();
-        return redirect('user/trashed');
+        $user = User::withTrashed()->find($id);
+        return $user->forceDelete() ?
+            response_success(['user' => $user], 'deleted permanently user id ' . $user->id) : response_error([], 'can not find user id ' . $user->id, 401);
+    }
+
+
+    public function restoreDeleted($id)
+    {
+        $user = User::withTrashed()->find($id);
+        return $user->restore() ?
+            response_success(['user' => $user], 'retore deleted user id ' . $user->id) : response_error([], 'can not find user id ' . $user->id, 401);
     }
 }

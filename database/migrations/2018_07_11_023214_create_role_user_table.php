@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 class CreateRoleUserTable extends Migration
 {
@@ -15,11 +15,10 @@ class CreateRoleUserTable extends Migration
     {
         Schema::create('role_user', function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('user_id')->unsigned()->references('id')->on('users');
-            $table->integer('role_id')->unsigned()->references('id')->on('roles');
+            $table->integer('role_id')->unsigned()->references('roles');
+            $table->integer('user_id')->unsigned()->references('users');
             $table->timestamps();
             $table->softDeletes();
-            $table->unique(['user_id', 'role_id']);
         });
     }
 
