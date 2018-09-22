@@ -1,1 +1,0 @@
-CREATE DATABASE namnh_blog_2018;
